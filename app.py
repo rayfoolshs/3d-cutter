@@ -190,7 +190,7 @@ def main():
     port = int(os.environ.get("PORT", "5050"))
     host = os.environ.get("HOST", "127.0.0.1")
     url = f"http://{host}:{port}"
-    print(f"Lakeland Cutter Studio: {url}")
+    print(f"3D Cutter: {url}")
     if os.environ.get("NO_BROWSER") != "1":
         threading.Timer(1.2, lambda: webbrowser.open(url)).start()
     app.run(host=host, port=port, debug=False, threaded=True)

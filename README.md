@@ -2,7 +2,7 @@
 
 A 60 mm round fondant cutter with a 3-level Lakeland emblem emboss, adjustable wall height, rim depth, and a complete flat rear. It also includes a local browser-based 3D editor for live parameter changes and STL/3MF downloads, plus an image upload workflow that converts any logo image to DXF and uses it as the cutter's emboss geometry.
 
-![Cutter Studio editor](editor_preview.png)
+![3D Cutter editor](editor_preview.png)
 
 ## Start here
 
@@ -18,7 +18,7 @@ The checked-in STL/3MF files are the **open-rear** version. For the current **fl
 ## Run the 3D editor
 
 ```bash
-cd /path/to/lakeland-60mm-fondant-cutter
+cd /path/to/3d-cutter
 ./run_editor.sh
 ```
 
@@ -107,7 +107,7 @@ Key points:
 
 ## Repository
 
-<https://github.com/rayfoolshs/lakeland-60mm-fondant-cutter>
+<https://github.com/rayfoolshs/3d-cutter>
 
 ## Food safety
 

@@ -17,8 +17,8 @@ A local 3D editor for generating a 60 mm fondant cutter and embosser, with param
 ## Quick start
 
 ```bash
-git clone https://github.com/rayfoolshs/lakeland-60mm-fondant-cutter.git
-cd lakeland-60mm-fondant-cutter
+git clone https://github.com/rayfoolshs/3d-cutter.git
+cd 3d-cutter
 ./run_editor.sh
 ```
 
@@ -32,11 +32,11 @@ Open <http://127.0.0.1:5050>.
 4. The cutter model is regenerated using that outline as the emboss shape.
 5. The DXF appears as a download card in the **Downloads** section.
 
-See [BUILD.md](https://github.com/rayfoolshs/lakeland-60mm-fondant-cutter/blob/main/BUILD.md) for implementation details.
+See [BUILD.md](https://github.com/rayfoolshs/3d-cutter/blob/main/BUILD.md) for implementation details.
 
 ## Repository
 
-<https://github.com/rayfoolshs/lakeland-60mm-fondant-cutter>
+<https://github.com/rayfoolshs/3d-cutter>
 
 ## License and artwork
 

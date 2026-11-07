@@ -1,4 +1,4 @@
-# Printing the Lakeland 60 mm Fondant Cutter
+# Printing the 3D Cutter
 
 This guide covers the checked-in **open-rear** model and the editor's **flat-rear** model. For the current flat-rear / auto-offset version, download the STL or 3MF from the editor's **Downloads** section.
 
@@ -243,6 +243,6 @@ Run it from a Python environment with the project dependencies installed.
 
 ## Repository and logo
 
-<https://github.com/rayfoolshs/lakeland-60mm-fondant-cutter>
+<https://github.com/rayfoolshs/3d-cutter>
 
 The Lakeland Senior High School name and logo remain the property of Lakeland Senior High School. The source artwork and 3D model are included for the school's cutter project.

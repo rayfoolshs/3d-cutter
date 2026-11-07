@@ -1,6 +1,6 @@
 # Build Notes and Prompt Log
 
-This document records how the image‑to‑DXF workflow was added to the Lakeland Cutter Studio and how the project is put together.
+This document records how the image‑to‑DXF workflow was added to 3D Cutter and how the project is put together.
 
 ## Architecture
 
