@@ -37,7 +37,6 @@
     <aside id="panel">
       <header class="panel-header">
         <div>
-          <div class="eyebrow">Lakeland SHS</div>
           <h1>Cutter Studio</h1>
           <p class="subtitle">60 mm fondant cutter / embosser</p>
         </div>
@@ -70,6 +69,11 @@
             <span class="download-text"><strong>Bambu 3MF</strong><small>Model-only; slice in Bambu Studio</small></span>
             <span class="download-arrow">&darr;</span>
           </a>
+          <a id="download-dxf" class="download-card" href="#" aria-disabled="true" download="uploaded-logo.dxf">
+            <span class="download-badge">DXF</span>
+            <span class="download-text"><strong>Uploaded logo DXF</strong><small>2D outline from your image</small></span>
+            <span class="download-arrow">&darr;</span>
+          </a>
         </div>
         <p class="footnote">Downloads refresh after the model updates. The 3MF is model-only; use the same nozzle in Bambu Studio.</p>
       </section>
@@ -93,6 +97,10 @@
           </div>
         </div>
         <div id="logo-placement"></div>
+        <div class="upload-section">
+          <input type="file" id="logo-upload" accept="image/*" style="margin-top:8px;">
+          <button id="upload-logo" class="link-button" type="button" style="margin-left:8px;">Upload Image</button>
+        </div>
         <p class="hint">Auto offset centres the visual mass; uncheck to fine-tune X/Y. Rotation follows the print view.</p>
       </section>
 
@@ -120,6 +128,6 @@
   </div>
 
   <div id="toast" class="toast" role="status"></div>
-  <script type="module" src="./app.js"></script>
+  <script type="module" src="./app.js?v=6"></script>
 </body>
 </html>

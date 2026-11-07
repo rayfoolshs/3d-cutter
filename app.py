@@ -11,6 +11,7 @@ from pathlib import Path
 from flask import Flask, jsonify, request, send_from_directory
 
 from scripts.cutter_model import Params, build_parts, export_outputs
+from scripts.image_to_dxf import image_to_dxf
 
 BASE = Path(__file__).resolve().parent
 WEB = BASE / "web"
@@ -30,6 +31,8 @@ PARTS = [
 ]
 
 app = Flask(__name__, static_folder=str(WEB), static_url_path="/web")
+UPLOAD_DIR = OUT / "uploads"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 lock = threading.Lock()
 default_lock = threading.Lock()
 default_info = None
@@ -46,7 +49,12 @@ def urls_for(model_id: str):
 
 
 def build_model(params: Params, model_id: str):
-    parts, _regions, info = build_parts(DXF, params)
+    logo_dxf_path = None
+    if params.logo_dxf:
+        candidate = UPLOAD_DIR / Path(params.logo_dxf).name
+        if candidate.exists():
+            logo_dxf_path = candidate
+    parts, _regions, info = build_parts(DXF, params, logo_dxf_path)
     out_dir = OUT / model_id
     export_outputs(parts, out_dir, stem="model")
     return info
@@ -135,6 +143,46 @@ def output_file(model_id: str, filename: str):
     if not folder.is_dir():
         return jsonify({"error": "Not found"}), 404
     return send_from_directory(folder, filename)
+
+# Image upload endpoint
+@app.post("/api/upload")
+def api_upload():
+    if "image" not in request.files:
+        return jsonify({"error": "No image file provided"}), 400
+    file = request.files["image"]
+    filename = file.filename
+    if not filename:
+        return jsonify({"error": "Empty filename"}), 400
+    from werkzeug.utils import secure_filename
+
+    filename = secure_filename(filename)
+    save_path = UPLOAD_DIR / filename
+    file.save(save_path)
+
+    stem = Path(filename).stem
+    dxf_name = f"{stem}.dxf"
+    dxf_path = UPLOAD_DIR / dxf_name
+    try:
+        image_to_dxf(save_path, dxf_path)
+        dxf_url = f"/upload/{dxf_name}"
+    except Exception:
+        app.logger.exception("Image to DXF conversion failed")
+        dxf_name = None
+        dxf_url = None
+
+    return jsonify(
+        {
+            "url": f"/upload/{filename}",
+            "dxf_url": dxf_url,
+            "dxf_name": dxf_name,
+        }
+    )
+
+
+# Serve uploaded files
+@app.get("/upload/<filename>")
+def serve_upload(filename: str):
+    return send_from_directory(UPLOAD_DIR, filename)
 
 
 def main():

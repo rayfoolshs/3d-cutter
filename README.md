@@ -1,6 +1,6 @@
 # Lakeland 60 mm Fondant Cutter / Embosser
 
-A 60 mm round fondant cutter with a 3-level Lakeland emblem emboss, adjustable wall height, rim depth, and a complete flat rear. It also includes a local browser-based 3D editor for live parameter changes and STL/3MF downloads.
+A 60 mm round fondant cutter with a 3-level Lakeland emblem emboss, adjustable wall height, rim depth, and a complete flat rear. It also includes a local browser-based 3D editor for live parameter changes and STL/3MF downloads, plus an image upload workflow that converts any logo image to DXF and uses it as the cutter's emboss geometry.
 
 ![Cutter Studio editor](editor_preview.png)
 
@@ -18,7 +18,7 @@ The checked-in STL/3MF files are the **open-rear** version. For the current **fl
 ## Run the 3D editor
 
 ```bash
-cd "/Users/rayfoo/Desktop/Logo Cookie Cutter"
+cd /path/to/lakeland-60mm-fondant-cutter
 ./run_editor.sh
 ```
 
@@ -37,6 +37,19 @@ The first run creates `.venv`, installs the Python dependencies, starts the loca
 - **Print nozzle:** 0.2 / 0.4 / 0.6 / 0.8 mm. It changes the minimum feature cleanup, vent size, and recommended layer height.
 - **Auto-update:** the 3D model refreshes after a short pause, or immediately with **Regenerate**. The camera view is preserved.
 - **Downloads:** the latest STL and 3MF are always in the Downloads section at the top of the panel.
+
+## Upload your own logo image
+
+The editor can convert an image (PNG/JPG) into a DXF outline and use it as the cutter's emboss geometry.
+
+1. Open the editor and find **Logo placement** in the side panel.
+2. Choose an image and click **Upload Image**.
+3. The server traces the image, writes a DXF under `web_output/uploads/`, and regenerates the 3D model with the new outline.
+4. The generated DXF appears as a download card in the **Downloads** section.
+
+The conversion uses Otsu thresholding, contour tracing, hole detection, and polygon cleanup. Images are resized to a 512 px maximum dimension before tracing. Transparent PNGs are not specially handled yet.
+
+See [BUILD.md](BUILD.md) for implementation details and the API endpoints.
 
 ## Default dimensions
 
@@ -81,6 +94,7 @@ Key points:
 | `requirements.txt` | Python dependencies. |
 | `web/` | Three.js frontend, CSS, and local vendor files. |
 | `scripts/cutter_model.py` | Parametric model builder used by the editor. |
+| `scripts/image_to_dxf.py` | Converts uploaded images to DXF outlines. |
 | `scripts/generate_cutter.py` | Original CLI generator for the checked-in open-rear files. |
 | `source/Lakeland - Transparent (1).dxf` | Source logo artwork. |
 | `lakeland_60mm_fondant_cutter_print.3mf` | Checked-in open-rear Bambu model. |
@@ -89,6 +103,7 @@ Key points:
 | `preview.png` | Model layout and cross-section preview. |
 | `editor_preview.png` | Editor screenshot. |
 | `PRINTING.md` | Detailed print guide. |
+| `BUILD.md` | Build notes, API reference, and prompt log. |
 
 ## Repository
 

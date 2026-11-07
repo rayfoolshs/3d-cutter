@@ -83,6 +83,7 @@ const rearViewButton = document.getElementById("rear-view");
 const isoViewButton = document.getElementById("iso-view");
 const stlLink = document.getElementById("download-stl");
 const tmfLink = document.getElementById("download-3mf");
+const dxfLink = document.getElementById("download-dxf");
 const toastEl = document.getElementById("toast");
 
 let renderer;
@@ -821,6 +822,38 @@ async function init() {
 
   regenerateButton.addEventListener("click", regenerate);
   resetButton.addEventListener("click", reset);
+  const uploadInput = document.getElementById("logo-upload");
+  const uploadButton = document.getElementById("upload-logo");
+  uploadButton.addEventListener("click", async () => {
+    if (!uploadInput.files.length) {
+      showToast("Select an image first.");
+      return;
+    }
+    const file = uploadInput.files[0];
+    const form = new FormData();
+    form.append("image", file);
+    setLoading(true, "Converting image to DXF…");
+    try {
+      const resp = await fetch("/api/upload", { method: "POST", body: form });
+      const data = await resp.json();
+      if (!resp.ok) {
+        throw new Error(data.error || "Upload failed");
+      }
+      if (!data.dxf_name) {
+        throw new Error("Image uploaded, but DXF conversion failed.");
+      }
+      state.params.logo_dxf = data.dxf_name;
+      dxfLink.href = data.dxf_url;
+      dxfLink.setAttribute("aria-disabled", "false");
+      showToast("Image converted to DXF. Regenerating model…", "ok");
+      setLoading(false);
+      markDirty();
+      scheduleAutoUpdate(0);
+    } catch (e) {
+      setLoading(false);
+      showToast(e.message);
+    }
+  });
   centerLogoButton.addEventListener("click", () => {
     state.params.logo_auto_offset = true;
     state.params.logo_offset_x = 0;

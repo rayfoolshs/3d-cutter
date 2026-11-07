@@ -41,6 +41,7 @@ class Params:
     flat_back: bool = True
     nozzle: float = 0.4
     vents: bool = True
+    logo_dxf: str = ""
 
     @property
     def cut_radius(self) -> float:
@@ -145,6 +146,7 @@ class Params:
             flat_back=flat_back,
             nozzle=nozzle,
             vents=as_bool(self.vents),
+            logo_dxf=str(self.logo_dxf or ""),
         )
 
     @classmethod
@@ -168,6 +170,7 @@ class Params:
             flat_back=data.get("flat_back", defaults.flat_back),
             nozzle=data.get("nozzle", defaults.nozzle),
             vents=data.get("vents", defaults.vents),
+            logo_dxf=data.get("logo_dxf", defaults.logo_dxf),
         ).normalized()
 
     def dict(self) -> dict:
@@ -227,6 +230,117 @@ def max_radius(geom):
     if geom.geom_type == "GeometryCollection":
         return max((max_radius(g) for g in geom.geoms), default=0.0)
     return 0.0
+
+
+def load_uploaded_logo(dxf_path: Path, params: Params):
+    doc = ezdxf.readfile(dxf_path)
+    msp = doc.modelspace()
+
+    outers = []
+    holes = []
+    for entity in msp.query("LWPOLYLINE"):
+        pts = [(float(x), float(y)) for x, y in entity.get_points("xy")]
+        if len(pts) < 3:
+            continue
+        poly = largest_polygon(clean(Polygon(pts)))
+        if poly.is_empty or poly.area <= 0:
+            continue
+        layer = (entity.dxf.layer or "").strip().upper()
+        if layer == "HOLE":
+            holes.append(poly)
+        else:
+            outers.append(poly)
+
+    if not outers:
+        raise ValueError("No outer logo polylines found in the uploaded DXF.")
+
+    logo = unary_union(outers)
+    if holes:
+        logo = logo.difference(unary_union(holes))
+    if logo.is_empty:
+        raise ValueError("The uploaded DXF produced an empty logo shape.")
+
+    min_x, min_y, max_x, max_y = logo.bounds
+    cx = (min_x + max_x) / 2.0
+    cy = (min_y + max_y) / 2.0
+
+    boundary_points = []
+
+    def collect_points(geom):
+        if geom.is_empty:
+            return
+        if geom.geom_type == "Polygon":
+            boundary_points.extend(geom.exterior.coords)
+            for interior in geom.interiors:
+                boundary_points.extend(interior.coords)
+        elif geom.geom_type == "MultiPolygon":
+            for piece in geom.geoms:
+                collect_points(piece)
+        elif geom.geom_type == "GeometryCollection":
+            for piece in geom.geoms:
+                collect_points(piece)
+
+    collect_points(logo)
+    if not boundary_points:
+        raise ValueError("The uploaded DXF has no usable boundary points.")
+
+    emblem_max_radius = max(math.hypot(x - cx, y - cy) for x, y in boundary_points)
+    if emblem_max_radius <= 0:
+        raise ValueError("The uploaded DXF logo has zero radius.")
+    scale = params.fit_radius / emblem_max_radius
+
+    def base_transform(geom):
+        transformed = translate(
+            shapely_scale(geom, xfact=scale, yfact=scale, origin=(0, 0)),
+            xoff=-cx * scale,
+            yoff=-cy * scale,
+        )
+        if params.logo_rotation:
+            transformed = rotate(
+                transformed,
+                -params.logo_rotation,
+                origin=(0, 0),
+                use_radians=False,
+            )
+        return transformed
+
+    base_bird = base_transform(logo)
+
+    def apply_offset(geom):
+        if geom.is_empty:
+            return geom
+        return translate(geom, xoff=params.logo_offset_x, yoff=-params.logo_offset_y)
+
+    bird_s = apply_offset(base_bird)
+
+    bird_b = clean(bird_s.buffer(params.bird_buffer, join_style=2, mitre_limit=3)).simplify(
+        SIMPLIFY, preserve_topology=True
+    )
+    bird_face = clean(bird_b).simplify(SIMPLIFY, preserve_topology=True)
+    empty = Polygon()
+    logo_max_radius = max_radius(bird_b)
+    bounds = base_bird.bounds
+    scaled_bbox = [bounds[2] - bounds[0], bounds[3] - bounds[1]] if not base_bird.is_empty else [0.0, 0.0]
+
+    return {
+        "bird_b": bird_b,
+        "bird_face": bird_face,
+        "groove": empty,
+        "green": empty,
+        "lime": empty,
+        "info": {
+            "logo_max_radius": logo_max_radius,
+            "ring_clearance": params.cut_radius - logo_max_radius,
+            "fit_radius": params.fit_radius,
+            "min_feature": params.min_feature,
+            "recommended_layer_height": params.recommended_layer_height,
+            "logo_offset_x": params.logo_offset_x,
+            "logo_offset_y": params.logo_offset_y,
+            "logo_rotation": params.logo_rotation,
+            "logo_auto_offset": params.logo_auto_offset,
+            "scaled_bbox": scaled_bbox,
+        },
+    }
 
 
 def load_regions(dxf_path: Path, params: Params):
@@ -376,11 +490,14 @@ def union_meshes(meshes):
     return trimesh.boolean.union(meshes, engine="manifold")
 
 
-def build_parts(dxf_path: Path, params: Params):
+def build_parts(dxf_path: Path, params: Params, logo_dxf_path: Path | None = None):
     params = params.normalized()
     if params.flat_back:
         params.vents = False
-    regions = load_regions(dxf_path, params)
+    if logo_dxf_path is not None and Path(logo_dxf_path).exists():
+        regions = load_uploaded_logo(Path(logo_dxf_path), params)
+    else:
+        regions = load_regions(dxf_path, params)
     cut_r = params.cut_radius
 
     profile = np.array(
