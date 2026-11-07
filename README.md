@@ -1,4 +1,4 @@
-# Lakeland 60 mm Fondant Cutter / Embosser
+# 3D Cutter
 
 A 60 mm round fondant cutter with a 3-level Lakeland emblem emboss, adjustable wall height, rim depth, and a complete flat rear. It also includes a local browser-based 3D editor for live parameter changes and STL/3MF downloads, plus an image upload workflow that converts any logo image to DXF and uses it as the cutter's emboss geometry.
 

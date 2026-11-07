@@ -1,4 +1,4 @@
-# Lakeland Cutter Studio
+# 3D Cutter
 
 A local 3D editor for generating a 60 mm fondant cutter and embosser, with parametric controls, STL/3MF downloads, and an image → DXF → 3D logo workflow.
 
